@@ -42,7 +42,6 @@ primus.on('connection', spark => {
 
     // play - means joining a room.
     if (action === play) {
-    
       // const playerId = nanoid(); ???
       spark.join(room, () => {
         // send message to this client
@@ -57,7 +56,8 @@ primus.on('connection', spark => {
       // + if both are ready - start the game.
       if (player1) {
         player2 = ready;
-        spark.room(room).except(spark.id).write(board);
+        spark.room(room).except(spark.id).write({ board });
+        spark.write({ ready_to_start: true });
       }
       else {
         player1 = ready;
@@ -71,7 +71,7 @@ primus.on('connection', spark => {
 
     // guess - passing players guess to the other one.
     if ( guess ) { 
-      spark.room(room).except(spark.id).write(guess);
+      spark.room(room).except(spark.id).write({ guess });
         // send message to this client
         // spark.write('you joined room ' + room);
         // send message to all clients except this one
@@ -82,9 +82,9 @@ primus.on('connection', spark => {
     if (action === 'leave') {
       spark.leave(room, () => {
         // send message to this client
-        spark.write('you left room ' + room);
+        // spark.write('you left room ' + room);
         // send message to all clients except this one
-        spark.room(room).except(spark.id).write(spark.id + ' left room ' + room);
+        // spark.room(room).except(spark.id).write(spark.id + ' left room ' + room);
       });
     }
 
