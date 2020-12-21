@@ -1,10 +1,11 @@
+require('dotenv').config()
 const Primus = require('primus');
 const Rooms = require('primus-rooms');
 const http = require('http');
 const fs = require('fs');
 const log = require('@ajar/marker')
 
-const { PORT } = process.env;
+const { PORT, HOST } = process.env;
 
 const server = http.createServer((req, res) => {
   //log the request url
@@ -25,6 +26,8 @@ primus.on('connection', spark => {
     const { room, action, guess, message, board, turn } = data;
     let player1;
     let player2;
+    //let player1_id;
+    //let player2_id;
 
     const play = 'play';
     const ready = 'ready';
@@ -42,8 +45,10 @@ primus.on('connection', spark => {
 
     // play - means joining a room.
     if (action === play) {
-      // const playerId = nanoid(); ???
       spark.join(room, () => {
+        console.log("inside room " + room)
+        // spark('id here').write('message')
+
         // send message to this client
         // spark.write('you joined room ' + room);
         // send message to all clients except this one
@@ -55,13 +60,17 @@ primus.on('connection', spark => {
     if (action === ready) {
       // + if both are ready - start the game.
       if (player1) {
+        // player2_id = spark.id
         player2 = ready;
         spark.room(room).except(spark.id).write({ board });
+        console.log( "board 2: " + board )
         spark.write({ ready_to_start: true });
       }
       else {
+        // player1_id = spark.id
         player1 = ready;
-        spark.room(room).except(spark.id).write({ board , turn });
+        spark.room(room).except(spark.id).write({ board, turn });
+        console.log( "board 1: " + board + " turn: " + turn )
       }
       // send message to this client
       // spark.write('you joined room ' + room);
@@ -102,6 +111,6 @@ primus.on('connection', spark => {
 
 //start the server
 (async () => {
-  await server.listen(PORT)
+  await server.listen(PORT, HOST)
   log.magenta(`server is live on`, `  ✨ ⚡  http://${HOST}:${PORT} ✨ ⚡`)
 })().catch(error => log.error(error));
